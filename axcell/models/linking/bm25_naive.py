@@ -84,13 +84,10 @@ class MetricValue:
         return self.value
 
     def complement(self):
-        if self.unit is None:
-            if 1 < self.value < 100:
-                value = 100 - self.value
-            else:
-                value = 1 - self.value
-        else:
+        if self.unit is None and 1 < self.value < 100 or self.unit is not None:
             value = 100 - self.value
+        else:
+            value = 1 - self.value
         return MetricValue(value, self.unit)
 
     def __repr__(self):
@@ -253,10 +250,10 @@ def generate_proposals_for_table(table_ext_id,  matrix, structure, desc, taxonom
 
 
     def annotations(r, c, type='model'):
-        for nc in range(0, c):
+        for nc in range(c):
             if type in structure[r, nc]:
                 yield Value(structure[r, nc], matrix[r, nc])
-        for nr in range(0, r):
+        for nr in range(r):
             if type in structure[nr, c]:
                 yield Value(structure[nr, c], matrix[nr, c])
 
@@ -341,15 +338,15 @@ def linked_proposals(paper_ext_id, paper, annotated_tables, taxonomy_linking=Non
     proposals = []
     paper_context, abstract_context = dataset_extractor.from_paper(paper)
     table_contexts = dataset_extractor.get_table_contexts(paper, annotated_tables)
+    tags = 'sota'
     #print(f"Extracted datasets: {datasets}")
     for idx, (table, table_context) in enumerate(zip(annotated_tables, table_contexts)):
         matrix = np.array(table.matrix)
         structure = np.array(table.matrix_tags)
-        tags = 'sota'
-        desc = table.caption
-        table_ext_id = f"{paper_ext_id}/{table.name}"
-
         if 'sota' in tags and 'no_sota_records' not in tags: # only parse tables that are marked as sota
+            desc = table.caption
+            table_ext_id = f"{paper_ext_id}/{table.name}"
+
             proposals.append(
                 generate_proposals_for_table(
                     table_ext_id, matrix, structure, desc, taxonomy_linking,

@@ -74,10 +74,7 @@ class TableStructurePredictor(ULMFiT_SP):
         return TextList.from_df(df, cols=text_cols)
 
     def get_features(self, evidences, use_crf=True):
-        if use_crf:
-            learner = self.learner
-        else:
-            learner = self._full_learner
+        learner = self.learner if use_crf else self._full_learner
         if len(evidences):
             tl = self.df2tl(evidences)
             learner.data.add_test(tl)

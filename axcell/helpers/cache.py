@@ -53,8 +53,13 @@ def load_proposals(path):
     dtypes['parsed'] = float
 
     na_values = {'confidence': '', 'parsed': ''}
-    proposals = pd.read_csv(path, index_col=0, dtype=dtypes, na_values=na_values, keep_default_na=False)
-    return proposals
+    return pd.read_csv(
+        path,
+        index_col=0,
+        dtype=dtypes,
+        na_values=na_values,
+        keep_default_na=False,
+    )
 
 
 def save_proposals(proposals, path):

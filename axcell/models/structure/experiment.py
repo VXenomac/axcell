@@ -145,8 +145,7 @@ class Experiment:
         d = dataclasses.asdict(self)
         res = d.pop("results")
         d.update(res)
-        row = pd.DataFrame({k: [v] for k, v in d.items()})
-        return row
+        return pd.DataFrame({k: [v] for k, v in d.items()})
 
     def new_experiment(self, **kwargs):
         # reset this fields unless their provided in load()
@@ -260,11 +259,15 @@ class Experiment:
 
     def _set_results(self, prefix, preds, true_y, true_y_ext=None):
         m = metrics(preds, true_y)
-        r = {}
-        r[f"{prefix}_accuracy"] = m["accuracy"]
-        r[f"{prefix}_precision"] = m["precision"]
-        r[f"{prefix}_recall"] = m["recall"]
-        r[f"{prefix}_cm"] = confusion_matrix(true_y, preds, labels=[x.value for x in Labels]).tolist()
+        r = {
+            f"{prefix}_accuracy": m["accuracy"],
+            f"{prefix}_precision": m["precision"],
+            f"{prefix}_recall": m["recall"],
+            f"{prefix}_cm": confusion_matrix(
+                true_y, preds, labels=[x.value for x in Labels]
+            ).tolist(),
+        }
+
         if true_y_ext is not None:
             r[f"{prefix}_cm_full"] = confusion_matrix(true_y_ext, preds, labels=[x.value for x in LabelsExt]).tolist()
         self.update_results(**r)
@@ -353,8 +356,7 @@ class Experiment:
     @classmethod
     def experiments_to_df(cls, exps):
         dfs = [e.to_df() for e in exps]
-        df = pd.concat(dfs)
-        return df
+        return pd.concat(dfs)
 
 @dataclass
 class NBSVMExperiment(Experiment):

@@ -120,14 +120,6 @@ class Explainer:
 
         return TableExplanation(paper, paper.table_by_name(table_name), table_type, table_proposals, reasons, topk)
 
-        row, col = [int(x) for x in rc.split('.')]
-
-        reason = self.fe.reason.get(cell_ext_id)
-        if reason is None:
-            pass
-        else:
-            return reason
-
     def _get_table_sota_records(self, table):
 
         first_model = lambda x: ([a for a in x if a.startswith('model')] + [''])[0]
@@ -209,10 +201,8 @@ class Explainer:
         if "experiment_name" in df.columns:
             del df["experiment_name"]
 
-        metrics = Metrics(df, experiment_name=experiment_name, topk_metrics=topk_metrics)
-        return metrics
+        return Metrics(df, experiment_name=experiment_name, topk_metrics=topk_metrics)
 
 
     def optimize_filters(self, metrics_info):
-        results = optimize_filters(self, metrics_info)
-        return results
+        return optimize_filters(self, metrics_info)

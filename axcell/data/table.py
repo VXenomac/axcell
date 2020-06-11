@@ -183,16 +183,13 @@ class Table:
             layout = read_str_csv(path / metadata['layout'])
         else:
             layout = None
-        if annotations is not None:
-            if not migrate:
-                # TODO: remove parser after migration is fully finished
-                table_ann = annotations.table_set.filter(name=metadata['filename'], parser="latexml") + [None]
-                table_ann = table_ann[0]
-            elif match_name is not None:
-                table_ann = annotations.table_set.filter(name=match_name) + [None]
-                table_ann = table_ann[0]
-            else:
-                table_ann = None
+        if not (annotations is None or migrate):
+            # TODO: remove parser after migration is fully finished
+            table_ann = annotations.table_set.filter(name=metadata['filename'], parser="latexml") + [None]
+            table_ann = table_ann[0]
+        elif annotations is not None and match_name is not None:
+            table_ann = annotations.table_set.filter(name=match_name) + [None]
+            table_ann = table_ann[0]
         else:
             table_ann = None
         return cls(metadata['filename'], df, layout, metadata.get('caption'), metadata.get('figure_id'), table_ann, migrate, match_name, guessed_tags)

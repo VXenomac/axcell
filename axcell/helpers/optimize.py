@@ -8,11 +8,8 @@ import matplotlib.tri as tri
 
 
 def annotations(matrix, structure, r, c, type='model'):
-    ann = []
-    for nc in range(0, c):
-        if type in structure[r, nc]:
-            ann.append(matrix[r, nc])
-    for nr in range(0, r):
+    ann = [matrix[r, nc] for nc in range(c) if type in structure[r, nc]]
+    for nr in range(r):
         if type in structure[nr, c]:
             ann.append(matrix[nr, c])
     return ' '.join(ann)
@@ -35,8 +32,8 @@ def estimate_context_noise(context, records):
     dss = set(cs.find_datasets(context)) | set(abbrvs.keys())
     mss = set(cs.find_metrics(context))
     dss -= mss
-    dss = set([normalize_cell(ds) for ds in dss])
-    mss = set([normalize_cell(ms) for ms in mss])
+    dss = {normalize_cell(ds) for ds in dss}
+    mss = {normalize_cell(ms) for ms in mss}
 
     gold_ds = set(records.dataset.values)
     gold_ms = set(records.metric.values)
@@ -150,11 +147,7 @@ def find_threshold_intervals(proposals, metrics_info, context="paper"):
         elif 'accuracy' in p.metric_pred.lower():
             d = 1
 
-        if d >= 0:
-            d = 1
-        else:
-            d = -1
-
+        d = 1 if d >= 0 else -1
         # the minimal threshold above which all superior results are ignored
         which = d * proposals_context.parsed_pred > d * p.parsed_pred
         if np.any(which.values):
@@ -173,7 +166,9 @@ def update_cm(proposal, cm, is_activated):
         cm = replace(cm, tp=cm.tp + d, fn=cm.fn - d)
     if proposal.equal and not proposal.pred_positive and not proposal.gold_positive:
         cm = replace(cm, tn=cm.tn + d)
-    if proposal.pred_positive and (not proposal.equal or not proposal.gold_positive):
+    if proposal.pred_positive and not (
+        proposal.equal and proposal.gold_positive
+    ):
         cm = replace(cm, fp=cm.fp + d)
     #     if proposal.gold_positive and (not proposal.equal or not proposal.pred_positive):
     #         cm = replace(cm, fn = cm.fn+d)

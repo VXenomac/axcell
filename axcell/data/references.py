@@ -75,8 +75,7 @@ class GrobidClient:
         return count
 
     def _post(self, data):
-        tries = 0
-        while tries < self.max_tries:
+        for tries in range(1, self.max_tries + 1):
             with requests.Session() as s:
                 r = s.post(
                     f'http://{self.host}:{self.port}/api/processCitation',
@@ -87,7 +86,6 @@ class GrobidClient:
                 return r.content.decode("utf-8")
             if r.status_code != 503:
                 raise RuntimeError(f"{r.status_code} {r.reason}\n{r.content}")
-            tries += 1
             if tries < self.max_tries:
                 time.sleep(self.retry_wait)
         raise ConnectionRefusedError(r.reason)
@@ -166,7 +164,6 @@ class PAuthor:
 
     def short(self):
         return " ".join(self.short_names())
-        return f'{surname} {fnames}'
 
 
 conferences = [
@@ -345,8 +342,7 @@ class ReferenceStore:
                     return r.stable_id
             return None
 
-        stable_id = self.add_or_merge(ref)
-        return stable_id
+        return self.add_or_merge(ref)
 
     def add_batch(self, ref_strs):
         if isinstance(ref_strs, str):

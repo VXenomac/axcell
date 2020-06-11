@@ -300,22 +300,12 @@ def set_ids_by_labels(soup):
 
 alg_id_re = re.compile(r"^alg(orithm)?[0-9]+")
 def perhaps_not_tabular(table, float_div):
-    classes = float_div.attrs.get("class", [])
-    if 'ltx_table' in classes:
-        return False
-    if 'ltx_figure' in classes:
-        if table.find("img", class_="ltx_graphics"):
-            return True
-    if 'ltx_float' in classes:
-        if 'biography' in classes:
-            return True
-        if 'ltx_float_algorithm':
-            return True
-        if 'ltx_lstlisting':
-            return True
-        if float_div.id and alg_id_re.match(float_div.id):
-            return True
-    return False
+  classes = float_div.attrs.get("class", [])
+  if 'ltx_table' in classes:
+      return False
+  if 'ltx_figure' in classes and table.find("img", class_="ltx_graphics"):
+    return True
+  return 'ltx_float' in classes
 
 def is_figure(tag):
     return tag.name == "figure"

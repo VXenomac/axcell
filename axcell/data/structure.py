@@ -52,7 +52,7 @@ def normalize_query(query):
     if isinstance(query, list):
         return tuple(normalize_query(x) for x in query)
     if isinstance(query, dict):
-        return tuple([(normalize_query(k), normalize_query(v)) for k,v in query.items()])
+        return tuple((normalize_query(k), normalize_query(v)) for k,v in query.items())
     return query
 
 _evidence_cache = {}
@@ -105,7 +105,7 @@ def fetch_evidence(cell_content, cell_reference, paper_id, table_name, row, col,
     ####print(f"{ext_id} |{cell_content}|: {len(paper_fragments)} paper fragments, {len(reference_fragments)} reference fragments, {len(other_fagements)} other fragments")
     # if not len(paper_fragments) and not len(reference_fragments) and not len(other_fagements):
     #     print(f"No evidences for '{cell_content}' of {paper_id}")
-    if not len(paper_fragments) and not len(reference_fragments):
+    if not (len(paper_fragments) or len(reference_fragments)):
         paper_fragments = [empty_fragment(paper_id)]
     return paper_fragments + reference_fragments + other_fagements
 
@@ -171,18 +171,14 @@ def evidence_for_table(paper_id, table, paper_limit, corpus_limit, cache=False):
                                            cache=cache)
             for record in create_evidence_records(evidence, cell, paper_id=paper_id, table=table)
     ]
-    df = pd.DataFrame.from_records(records, columns=evidence_columns)
-    return df
+    return pd.DataFrame.from_records(records, columns=evidence_columns)
 
 
 def prepare_data(tables, csv_path, cache=False):
     data = [evidence_for_table(table.paper_id, table,
                                        paper_limit=100,
                                        corpus_limit=20, cache=cache) for table in progress_bar(tables)]
-    if len(data):
-        df = pd.concat(data)
-    else:
-        df = pd.DataFrame(columns=evidence_columns)
+    df = pd.concat(data) if len(data) else pd.DataFrame(columns=evidence_columns)
     #moved to experiment preprocessing
     #df = df.drop_duplicates(
     #    ["cell_content", "text_highlited", "cell_type", "this_paper"])

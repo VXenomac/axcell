@@ -63,11 +63,7 @@ class ULMFiTExperiment(Experiment):
     def _schedule(self, clas, i):
         s = self.schedule[i]
         cyc_len = s[0]
-        if len(s) == 2:
-            max_lr = s[1]
-        else:
-            max_lr = slice(s[1], s[2])
-
+        max_lr = s[1] if len(s) == 2 else slice(s[1], s[2])
         if self.moms is None:
             clas.fit_one_cycle(cyc_len, max_lr)
         else:
@@ -163,18 +159,17 @@ def multipreds2preds(preds, threshold=0.5):
 
 
 def accuracy_multilabel(input, target, sigmoid=True, irrelevant_as_class=False, threshold=0.5):
-    if sigmoid:
-        if irrelevant_as_class:
-            input = torch.sigmoid(input).argmax(dim=-1)
-            target = target.argmax(dim=-1)
-            return (input == target).float().mean()
-        else:
-            input = torch.sigmoid(input)
-            input = multipreds2preds(input, threshold)
-            targs = multipreds2preds(target, threshold)
-            return (input == targs).float().mean()
-    else:
+    if not sigmoid:
         return accuracy(input, target)
+    if irrelevant_as_class:
+        input = torch.sigmoid(input).argmax(dim=-1)
+        target = target.argmax(dim=-1)
+        return (input == target).float().mean()
+    else:
+        input = torch.sigmoid(input)
+        input = multipreds2preds(input, threshold)
+        targs = multipreds2preds(target, threshold)
+        return (input == targs).float().mean()
 
 
 def accuracy_binary(input, target, sigmoid=True, irrelevant_as_class=False, threshold=0.5):
@@ -182,21 +177,16 @@ def accuracy_binary(input, target, sigmoid=True, irrelevant_as_class=False, thre
         if irrelevant_as_class:
             input = torch.sigmoid(input).argmax(dim=-1)
             target = target.argmax(dim=-1)
-            input[input == 1] = 0
-            target[target == 1] = 0
-            return (input == target).float().mean()
         else:
             input = torch.sigmoid(input)
             input = multipreds2preds(input, threshold)
             target = multipreds2preds(target, threshold)
-            input[input == 1] = 0
-            target[target == 1] = 0
-            return (input == target).float().mean()
     else:
         input = input.argmax(dim=-1)
-        input[input == 1] = 0
-        target[target == 1] = 0
-        return (input == target).float().mean()
+
+    input[input == 1] = 0
+    target[target == 1] = 0
+    return (input == target).float().mean()
 
 
 @dataclass
@@ -227,12 +217,11 @@ class ULMFiTTableTypeExperiment(ULMFiTExperiment):
         if self.distinguish_ablation:
             df["label"] = 2
             df.loc[df.ablation, "label"] = 1
-            df.loc[df.sota, "label"] = 0
         else:
             df["label"] = 1
-            df.loc[df.sota, "label"] = 0
             df.loc[df.ablation, "label"] = 0
 
+        df.loc[df.sota, "label"] = 0
         if self.sigmoid:
             if self.irrelevant_as_class:
                 df["irrelevant"] = ~(df["sota"] | df["ablation"])

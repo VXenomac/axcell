@@ -119,10 +119,7 @@ class Fragment(Document):
 
     @classmethod
     def from_json(cls, json):
-        if isinstance(json, str):
-            source = serializer.loads(json)
-        else:
-            source = json
+        source = serializer.loads(json) if isinstance(json, str) else json
         data = dict(
             _source = source,
             _id = f"{source['paper_id']}_{source['order']}",
@@ -157,10 +154,7 @@ class Paper(Document):
 
     @classmethod
     def from_json(cls, json, paper_id=None):
-        if isinstance(json, str):
-            source = serializer.loads(json)
-        else:
-            source = json
+        source = serializer.loads(json) if isinstance(json, str) else json
         fragments = source.pop('fragments', [])
         data = dict(
             _source = source,
@@ -378,11 +372,9 @@ class Reference2(Document):
         #  stable_id = first_author + "-" + normalize_title(until_first_nonalphanumeric(title))[:50]
         stable_id = ref.unique_id()[:ID_LIMIT]
 
-        self = cls(meta={"id":stable_id},
+        return cls(meta={"id":stable_id},
                    title=ref.title,
                    authors=[asdict(a) for a in ref.authors if a is not None])
-
-        return self
 
 #
 # arxiv = Path('data/arxiv')

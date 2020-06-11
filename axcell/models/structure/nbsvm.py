@@ -95,11 +95,11 @@ class NBSVM:
     def train_models(self, y_train):
         self.models = []
         if self.experiment.multinomial_type == "manual":
-            for i in range(0, self.c):
+            for i in range(self.c):
                 #print('fit', i)
                 m, r = self.get_mdl(get_class_column(y_train, i))
                 self.models.append((m, r))
-        elif self.experiment.multinomial_type == "multinomial" or self.experiment.multinomial_type == "ovr":
+        elif self.experiment.multinomial_type in ["multinomial", "ovr"]:
             m = LogisticRegression(C=self.experiment.C, penalty=self.experiment.penalty,
                                    dual=self.experiment.dual, solver=self.experiment.solver,
                                    max_iter=self.experiment.max_iter,
@@ -118,10 +118,10 @@ class NBSVM:
         test_term_doc = self.vec.transform(X_test)
         if self.experiment.multinomial_type == "manual":
             preds = np.zeros((len(X_test), self.c))
-            for i in range(0, self.c):
+            for i in range(self.c):
                 m, r = self.models[i]
                 preds[:, i] = m.predict_proba(test_term_doc.multiply(r))[:, 1]
-        elif self.experiment.multinomial_type == "multinomial" or self.experiment.multinomial_type == "ovr":
+        elif self.experiment.multinomial_type in ["multinomial", "ovr"]:
             preds = self.models[0].predict_proba(test_term_doc)
         else:
             raise Exception(f"Unsupported multinomial_type {self.experiment.multinomial_type}")
@@ -161,8 +161,7 @@ class NBSVM:
         return mismatched
 
     def validate(self, X_test, y_test):
-        acc = (np.argmax(self.predict_proba(X_test),  axis=1) == y_test).mean()
-        return acc
+        return (np.argmax(self.predict_proba(X_test),  axis=1) == y_test).mean()
 
 def metrics(preds, true_y):
     y = true_y
@@ -189,10 +188,15 @@ def preds_for_cell_content(test_df, probs, group_by=["cell_content"]):
     grouped_preds = test_df.groupby(group_by)["pred"].agg(
         lambda x: x.value_counts().index[0])
     grouped_counts = test_df.groupby(group_by)["pred"].count()
-    results = pd.DataFrame({'true': test_df.groupby(group_by)["label"].agg(lambda x: x.value_counts().index[0]),
-                            'pred': grouped_preds,
-                            'counts': grouped_counts})
-    return results
+    return pd.DataFrame(
+        {
+            'true': test_df.groupby(group_by)["label"].agg(
+                lambda x: x.value_counts().index[0]
+            ),
+            'pred': grouped_preds,
+            'counts': grouped_counts,
+        }
+    )
 
 def preds_for_cell_content_multi(test_df, probs, group_by=["cell_content"]):
     test_df = test_df.copy()
@@ -201,10 +205,15 @@ def preds_for_cell_content_multi(test_df, probs, group_by=["cell_content"]):
     grouped_preds = np.argmax(test_df.groupby(
         group_by)[probs_df.columns].sum().values, axis=1)
     grouped_counts = test_df.groupby(group_by)["label"].count()
-    results = pd.DataFrame({'true': test_df.groupby(group_by)["label"].agg(lambda x: x.value_counts().index[0]),
-                            'pred': grouped_preds,
-                            'counts': grouped_counts})
-    return results
+    return pd.DataFrame(
+        {
+            'true': test_df.groupby(group_by)["label"].agg(
+                lambda x: x.value_counts().index[0]
+            ),
+            'pred': grouped_preds,
+            'counts': grouped_counts,
+        }
+    )
 
 def preds_for_cell_content_max(test_df, probs, group_by=["cell_content"]):
     test_df = test_df.copy()
@@ -213,10 +222,15 @@ def preds_for_cell_content_max(test_df, probs, group_by=["cell_content"]):
     grouped_preds = np.argmax(test_df.groupby(
         group_by)[probs_df.columns].max().values, axis=1)
     grouped_counts = test_df.groupby(group_by)["label"].count()
-    results = pd.DataFrame({'true': test_df.groupby(group_by)["label"].agg(lambda x: x.value_counts().index[0]),
-                            'pred': grouped_preds,
-                            'counts': grouped_counts})
-    return results
+    return pd.DataFrame(
+        {
+            'true': test_df.groupby(group_by)["label"].agg(
+                lambda x: x.value_counts().index[0]
+            ),
+            'pred': grouped_preds,
+            'counts': grouped_counts,
+        }
+    )
 
 def test_model(model, tdf):
     probs = model(tdf["text"])

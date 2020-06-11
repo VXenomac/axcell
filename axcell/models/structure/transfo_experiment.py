@@ -78,9 +78,24 @@ def train(args, train_dataset, valid_dataset, model, tokenizer):
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
-        {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': args.weight_decay},
-        {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-        ]
+        {
+            'params': [
+                p
+                for n, p in model.named_parameters()
+                if all(nd not in n for nd in no_decay)
+            ],
+            'weight_decay': args.weight_decay,
+        },
+        {
+            'params': [
+                p
+                for n, p in model.named_parameters()
+                if any(nd in n for nd in no_decay)
+            ],
+            'weight_decay': 0.0,
+        },
+    ]
+
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.warmup_steps, t_total=t_total)
     if args.fp16:
@@ -243,7 +258,7 @@ def evaluate(args, model, eval_dataset, prefix="", eval_output_dir="/tmp/out"):
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
 
-    eval_loss = eval_loss / nb_eval_steps
+    eval_loss /= nb_eval_steps
     if args.output_mode == "classification":
         preds = np.argmax(preds, axis=1)
     elif args.output_mode == "regression":
@@ -288,10 +303,7 @@ def strip_tensors(r):
     nr = {}
     for k,v in r.items():
         v = v.numpy()
-        if isinstance(v, bytes):
-            v = v.decode("utf-8")
-        else:
-            v = v.item()
+        v = v.decode("utf-8") if isinstance(v, bytes) else v.item()
         nr[k] = v
     return nr
 

@@ -78,10 +78,7 @@ class Evaluator():
     def evaluate(self, proposals_filter, track_proposals=False):
         if self.raw_proposals is None:
             self.run_model()
-        if track_proposals:
-            all_proposals = self.raw_proposals.copy(deep=True)
-        else:
-            all_proposals = None
+        all_proposals = self.raw_proposals.copy(deep=True) if track_proposals else None
         proposals = proposals_filter(self.raw_proposals, all_proposals)
         gold_sota_records = fetch_gold_sota_records()
         df = gold_sota_records.merge(proposals, 'outer', left_index=True, right_index=True, suffixes=['_gold', '_pred'])

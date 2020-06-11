@@ -129,9 +129,22 @@ class EvidenceFinder:
         self.metrics = {k: set(v) for k, v in self.metrics.items()}
         self.tasks = {k: set(v) for k, v in self.tasks.items()}
 
-        self.all_datasets = set(normalize_cell_ws(normalize_dataset(y)) for x in self.datasets.values() for y in x)
-        self.all_metrics = set(normalize_cell_ws(y) for x in self.metrics.values() for y in x)
-        self.all_tasks = set(normalize_cell_ws(normalize_dataset(y)) for x in self.tasks.values() for y in x)
+        self.all_datasets = {
+            normalize_cell_ws(normalize_dataset(y))
+            for x in self.datasets.values()
+            for y in x
+        }
+
+        self.all_metrics = {
+            normalize_cell_ws(y) for x in self.metrics.values() for y in x
+        }
+
+        self.all_tasks = {
+            normalize_cell_ws(normalize_dataset(y))
+            for x in self.tasks.values()
+            for y in x
+        }
+
 
         self.all_datasets_trie = EvidenceFinder.make_trie(self.all_datasets)
         self.all_metrics_trie = EvidenceFinder.make_trie(self.all_metrics)
@@ -432,14 +445,13 @@ class DatasetExtractor:
                         ref_contexts[ref][0] += ts
                         ref_contexts[ref][1] += ds
                         ref_contexts[ref][2] += ms
-        table_contexts = [
+        return [
             ref_contexts.get(
                 table.figure_id.replace(".", ""),
                 [Counter(), Counter(), Counter()]
             ) if table.figure_id else [Counter(), Counter(), Counter()]
             for table in tables
         ]
-        return table_contexts
 
     def from_paper(self, paper):
         abstract = paper.text.abstract

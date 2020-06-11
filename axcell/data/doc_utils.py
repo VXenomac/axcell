@@ -215,11 +215,8 @@ def group_content2(elements):
             fragments = par_gruop.flush() + fragments
         else:
             fragments = par_gruop.collect(el)
-        for frag in fragments:
-            yield frag
-
-    for frag in par_gruop.flush():
-        yield frag
+        yield from fragments
+    yield from par_gruop.flush()
 
 
 def walk(elem):

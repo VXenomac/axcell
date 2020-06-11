@@ -99,7 +99,7 @@ class StructurePredictionEvaluator:
             gold = golds[0]
             for gold_table, table, in zip(gold.tables, paper.tables):
                 table_type = self.type_predictions[paper.paper_id, table.name]
-                is_important = table_type == TableType.SOTA or table_type == TableType.ABLATION
+                is_important = table_type in [TableType.SOTA, TableType.ABLATION]
                 gold_is_important = "sota" in gold_table.gold_tags or "ablation" in gold_table.gold_tags
                 type_results.append({"predicted": is_important, "gold": gold_is_important, "name": table.name})
                 if not is_important:
@@ -133,7 +133,12 @@ class StructurePredictionEvaluator:
         results = self.results[paper_id]
         cells_df = results['cells']
         e = Experiment()
-        e._set_results(paper_id, self.map_tags(results['cells'].predicted), self.map_tags(results['cells'].gold))
+        e._set_results(
+            paper_id,
+            self.map_tags(cells_df.predicted),
+            self.map_tags(cells_df.gold),
+        )
+
         e.show_results(paper_id, normalize=True)
 
     def get_table_type_predictions(self, paper_id, table_name):

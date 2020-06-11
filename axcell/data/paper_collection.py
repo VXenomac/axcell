@@ -106,11 +106,7 @@ class PaperCollection(UserList):
             annotations_path = path / "structure-annotations.json"
         else:
             annotations_path = Path(annotations_path)
-        if load_texts:
-            texts = _load_texts(path, jobs)
-        else:
-            texts = {}
-
+        texts = _load_texts(path, jobs) if load_texts else {}
         if annotations is None:
             annotations = {}
         else:
@@ -132,12 +128,12 @@ class PaperCollection(UserList):
             for p in self.data:
                 if p.arxiv_no_version == paper_id:
                     return p
-            return None
         else:
             for p in self.data:
                 if p.paper_id == paper_id:
                     return p
-            return None
+
+        return None
 
     @classmethod
     def cells_gold_tags_legend(cls):

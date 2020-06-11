@@ -24,9 +24,11 @@ class Helper:
         pc = PaperCollection.from_pickle(path)
         cell_evidences = CellEvidenceExtractor()
         connections.create_connection(hosts=['10.0.1.145'], timeout=20)
-        raw_evidences = []
-        for paper in tqdm(pc):
-            raw_evidences.append(cell_evidences(paper, paper.tables, paper_limit=100, corpus_limit=20))
+        raw_evidences = [
+            cell_evidences(paper, paper.tables, paper_limit=100, corpus_limit=20)
+            for paper in tqdm(pc)
+        ]
+
         raw_evidences = pd.concat(raw_evidences)
         path = path.with_suffix(".evidences.pkl")
         raw_evidences.to_pickle(path)

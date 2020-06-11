@@ -127,10 +127,7 @@ class BestResultFilter(ProposalsFilter):
             elif 'accuracy' in metric.lower():
                 d = 1
 
-            if d >= 0:
-                index = group.parsed.idxmax()
-            else:
-                index = group.parsed.idxmin()
+            index = group.parsed.idxmax() if d >= 0 else group.parsed.idxmin()
             indices.append(index)
             reason[group.index[group.index != index]] = "replaced by " + str(index)
 

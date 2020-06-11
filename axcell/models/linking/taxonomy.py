@@ -49,7 +49,7 @@ class Taxonomy:
         return [(r["task"], r["dataset"], r["metric"]) for r in self.records]
 
     def _get_axis(self, axis):
-        return set(x[axis] for x in self.records)
+        return {x[axis] for x in self.records}
 
     def _read_metrics_info(self, path):
         records = self._read_json(path)

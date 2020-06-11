@@ -23,7 +23,7 @@ def format_to_regexp(format):
         else:
             regexp += float_value_re.pattern
             ss = s.strip()
-            if ss == "100*x" or ss == "100x":
+            if ss in ["100*x", "100x"]:
                 fn = lambda x: 100*x
             elif ss == "x/100":
                 fn = lambda x: x/100

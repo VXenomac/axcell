@@ -23,18 +23,12 @@ def table_to_html(table, structure=None, layout=None, predictions=None, tooltips
         matrix - 2d ndarray with cell values
         strucutre - 2d ndarray with structure annotation
     """
-    if hasattr(table, 'matrix'):
-        matrix = table.matrix
-    else:
-        matrix = table
+    matrix = table.matrix if hasattr(table, 'matrix') else table
     if structure is None: structure = table.matrix_gold_tags
     if layout is None: layout = np.zeros_like(matrix, dtype=str)
     if predictions is None: predictions = np.zeros_like(matrix, dtype=str)
     if tooltips is None: tooltips = np.zeros_like(matrix, dtype=str)
-    html = []
-    html.append(table_style)
-    html.append('<div class="tableWrapper">')
-    html.append("<table>")
+    html = [table_style, '<div class="tableWrapper">', "<table>"]
     for row,struc_row, layout_row, preds_row, tt_row in zip(matrix, structure, layout, predictions, tooltips):
         html.append("<tr>")
         for cell,struct,layout,preds, tt in zip(row,struc_row,layout_row,preds_row, tt_row):

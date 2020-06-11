@@ -125,8 +125,9 @@ class Metrics:
         m["experiment_name"] = self.experiment_name
         m["test_type"] = self.metric_type
 
-        df = pd.DataFrame([(k,v) for k,v in m.items()], columns=["metric", "value"]).set_index("metric")
-        return df
+        return pd.DataFrame(
+            [(k, v) for k, v in m.items()], columns=["metric", "value"]
+        ).set_index("metric")
 
     def errors(self, *col_names):
         cols = col_names
